@@ -24,7 +24,9 @@ pipeline {
             docker {
               image 'gradle:jdk11'
             }
-
+          }
+          when {
+            beforeAgent true
           }
           options {
             skipDefaultCheckout()
@@ -32,7 +34,7 @@ pipeline {
           steps {
             unstash 'code'
             sh 'ci/build-app.sh'
-            stash(name: 'code')
+            stash 'code'
             archiveArtifacts 'app/build/libs/'
           }
         }
@@ -57,6 +59,7 @@ pipeline {
       }
     }
     stage('push docker app') {
+      when { branch 'master' }
       environment {
         DOCKERCREDS = credentials('docker_login')
       }
@@ -66,6 +69,13 @@ pipeline {
         sh 'ci/build-docker.sh'
         sh 'echo "$DOCKERCREDS_PSW" | docker login -u "$DOCKERCREDS_USR" --password-stdin' //login to docker hub with the credentials above
         sh 'ci/push-docker.sh'
+      }
+    }
+    stage('component test') {
+      when { branch pattern: "^(?!dev\/.*$).*", comparator: 'REGEXP' }
+      steps {
+        unstash 'code'
+        sh 'ci/component-test.sh'
       }
     }
   }
