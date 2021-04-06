@@ -69,7 +69,12 @@ pipeline {
       }
     }
     stage('component test') {
-      when { branch pattern: "^(?!dev/.*).*", comparator: 'REGEXP' }
+      when {
+        anyOf {
+          branch 'master'
+          changeRequest()
+        }
+      }
       steps {
         unstash 'code'
         sh 'ci/component-test.sh'
