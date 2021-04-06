@@ -25,9 +25,6 @@ pipeline {
               image 'gradle:jdk11'
             }
           }
-          when {
-            beforeAgent true
-          }
           options {
             skipDefaultCheckout()
           }
@@ -72,7 +69,7 @@ pipeline {
       }
     }
     stage('component test') {
-      when { branch pattern: "^(?!dev\/.*$).*", comparator: 'REGEXP' }
+      when { branch pattern: "^(?!dev/.*).*", comparator: 'REGEXP' }
       steps {
         unstash 'code'
         sh 'ci/component-test.sh'
